@@ -125,8 +125,12 @@ END:VCARD`;
     // Clear previous QR code
     qrCodeContainer.innerHTML = '';
     
+    // Create a canvas element
+    const canvas = document.createElement('canvas');
+    qrCodeContainer.appendChild(canvas);
+    
     // Generate QR code
-    QRCode.toCanvas(qrCodeContainer, qrContent, {
+    QRCode.toCanvas(canvas, qrContent, {
         width: size,
         height: size,
         color: {
@@ -145,14 +149,14 @@ END:VCARD`;
         qrResult.classList.remove('hidden');
         
         // Setup download button
-        setupDownloadButton(qrContent);
+        setupDownloadButton();
         
         // Setup share button
         setupShareButton(qrContent);
     });
 }
 
-function setupDownloadButton(qrContent) {
+function setupDownloadButton() {
     downloadBtn.addEventListener('click', () => {
         const canvas = qrCodeContainer.querySelector('canvas');
         if (!canvas) return;
@@ -198,6 +202,7 @@ function setupShareButton(qrContent) {
 
 // QR Code Scanner
 let videoStream = null;
+let isScanning = false;
 
 startCameraBtn.addEventListener('click', startCamera);
 stopCameraBtn.addEventListener('click', stopCamera);
@@ -212,22 +217,29 @@ async function startCamera() {
         // Set video source
         scannerVideo.srcObject = videoStream;
         
-        // Hide placeholder and show video
-        scannerPlaceholder.style.display = 'none';
+        // Ensure video is loaded before starting scan
+        scannerVideo.onloadedmetadata = function() {
+            // Hide placeholder and show video
+            scannerPlaceholder.style.display = 'none';
+            
+            // Show stop camera button and hide start camera button
+            startCameraBtn.classList.add('hidden');
+            stopCameraBtn.classList.remove('hidden');
+            
+            // Start scanning for QR codes
+            scanQRCode();
+        };
         
-        // Show stop camera button and hide start camera button
-        startCameraBtn.classList.add('hidden');
-        stopCameraBtn.classList.remove('hidden');
-        
-        // Start scanning for QR codes
-        scanQRCode();
-    } catch (error) {
-        console.error('Error accessing camera: ', error);
+        scannerVideo.play();
+    } catch (err) {
+        console.error('Error accessing camera: ', err);
         alert('Failed to access camera. Please check permissions and try again.');
     }
 }
 
 function stopCamera() {
+    isScanning = false;
+    
     if (videoStream) {
         // Stop all tracks
         videoStream.getTracks().forEach(track => track.stop());
@@ -248,6 +260,7 @@ function stopCamera() {
 
 function scanQRCode() {
     if (!videoStream) return;
+    isScanning = true;
     
     // Set up canvas
     const canvas = scannerCanvas;
@@ -255,46 +268,58 @@ function scanQRCode() {
     
     // Function to process video frames
     function processFrame() {
-        if (!videoStream) return;
+        if (!isScanning || !videoStream) return;
         
-        // Set canvas dimensions to match video
-        canvas.width = scannerVideo.videoWidth;
-        canvas.height = scannerVideo.videoHeight;
-        
-        // Draw video frame to canvas
-        ctx.drawImage(scannerVideo, 0, 0, canvas.width, canvas.height);
-        
-        // Get image data for QR code detection
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        
-        // Process image data with jsQR
-        const code = jsQR(imageData.data, imageData.width, imageData.height);
-        
-        // If QR code is detected
-        if (code) {
-            // Display the result
-            scannedResult.textContent = code.data;
-            scanResult.classList.remove('hidden');
+        // Only process when video is playing and has dimensions
+        if (scannerVideo.readyState === scannerVideo.HAVE_ENOUGH_DATA) {
+            // Set canvas dimensions to match video
+            canvas.width = scannerVideo.videoWidth;
+            canvas.height = scannerVideo.videoHeight;
             
-            // Setup copy button
-            copyResultBtn.onclick = () => {
-                navigator.clipboard.writeText(code.data)
-                    .then(() => alert('Copied to clipboard!'))
-                    .catch(err => console.error('Failed to copy: ', err));
-            };
+            // Draw video frame to canvas
+            ctx.drawImage(scannerVideo, 0, 0, canvas.width, canvas.height);
             
-            // Setup open button (only show for URLs)
-            if (isValidURL(code.data)) {
-                openResultBtn.classList.remove('hidden');
-                openResultBtn.onclick = () => {
-                    window.open(code.data, '_blank');
-                };
-            } else {
-                openResultBtn.classList.add('hidden');
+            // Get image data for QR code detection
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            
+            try {
+                // Process image data with jsQR
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                
+                // If QR code is detected
+                if (code) {
+                    // Play a beep sound
+                    beep();
+                    
+                    // Display the result
+                    scannedResult.textContent = code.data;
+                    scanResult.classList.remove('hidden');
+                    
+                    // Setup copy button
+                    copyResultBtn.onclick = () => {
+                        navigator.clipboard.writeText(code.data)
+                            .then(() => alert('Copied to clipboard!'))
+                            .catch(err => console.error('Failed to copy: ', err));
+                    };
+                    
+                    // Setup open button (only show for URLs)
+                    if (isValidURL(code.data)) {
+                        openResultBtn.classList.remove('hidden');
+                        openResultBtn.onclick = () => {
+                            window.open(code.data, '_blank');
+                        };
+                    } else {
+                        openResultBtn.classList.add('hidden');
+                    }
+                    
+                    // Pause scanning
+                    isScanning = false;
+                    return;
+                }
+            } catch (error) {
+                console.error('Error processing QR code:', error);
+                // Continue scanning even if there's an error
             }
-            
-            // Pause scanning
-            return;
         }
         
         // Continue scanning
@@ -303,6 +328,21 @@ function scanQRCode() {
     
     // Start processing frames
     processFrame();
+}
+
+// Simple beep sound function
+function beep() {
+    try {
+        const context = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = context.createOscillator();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(800, context.currentTime);
+        oscillator.connect(context.destination);
+        oscillator.start();
+        setTimeout(() => oscillator.stop(), 100);
+    } catch (e) {
+        // Silent fail - audio not critical
+    }
 }
 
 // Utility function to check if a string is a valid URL
