@@ -22,9 +22,8 @@ A modern, user-friendly web application for generating and scanning QR codes. Th
 
 ## 📸 Screenshots
 
-![Generator Tab](https://via.placeholder.com/800x450.png?text=QR+Code+Generator)
+![image](https://github.com/user-attachments/assets/38ae5ada-51c0-41c9-895d-d4a120a51b42)
 
-![Scanner Tab](https://via.placeholder.com/800x450.png?text=QR+Code+Scanner)
 
 ## 🛠️ Technologies Used
 
