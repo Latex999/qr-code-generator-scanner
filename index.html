@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator & Scanner</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1>QR Code Generator & Scanner</h1>
+    </header>
+
+    <main>
+        <div class="tabs">
+            <button class="tab-btn active" id="generate-tab">Generate QR Code</button>
+            <button class="tab-btn" id="scan-tab">Scan QR Code</button>
+        </div>
+
+        <div class="tab-content">
+            <!-- Generate QR Code Tab -->
+            <div class="tab-pane active" id="generate-pane">
+                <div class="content-type-selector">
+                    <button class="content-type-btn active" data-type="url">URL</button>
+                    <button class="content-type-btn" data-type="text">Text</button>
+                    <button class="content-type-btn" data-type="contact">Contact</button>
+                </div>
+
+                <!-- URL QR Code Form -->
+                <div class="qr-form" id="url-form">
+                    <div class="form-group">
+                        <label for="url-input">Enter URL:</label>
+                        <input type="url" id="url-input" placeholder="https://example.com">
+                    </div>
+                </div>
+
+                <!-- Text QR Code Form -->
+                <div class="qr-form hidden" id="text-form">
+                    <div class="form-group">
+                        <label for="text-input">Enter Text:</label>
+                        <textarea id="text-input" placeholder="Enter your text here"></textarea>
+                    </div>
+                </div>
+
+                <!-- Contact QR Code Form -->
+                <div class="qr-form hidden" id="contact-form">
+                    <div class="form-group">
+                        <label for="name-input">Name:</label>
+                        <input type="text" id="name-input" placeholder="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="email-input">Email:</label>
+                        <input type="email" id="email-input" placeholder="john@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone-input">Phone:</label>
+                        <input type="tel" id="phone-input" placeholder="+1 234 567 8900">
+                    </div>
+                    <div class="form-group">
+                        <label for="company-input">Company (optional):</label>
+                        <input type="text" id="company-input" placeholder="Company Name">
+                    </div>
+                </div>
+
+                <div class="qr-options">
+                    <div class="form-group">
+                        <label for="qr-size">QR Code Size:</label>
+                        <select id="qr-size">
+                            <option value="128">Small (128x128)</option>
+                            <option value="256" selected>Medium (256x256)</option>
+                            <option value="512">Large (512x512)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="foreground-color">Foreground Color:</label>
+                        <input type="color" id="foreground-color" value="#000000">
+                    </div>
+                    <div class="form-group">
+                        <label for="background-color">Background Color:</label>
+                        <input type="color" id="background-color" value="#FFFFFF">
+                    </div>
+                </div>
+
+                <button id="generate-btn" class="btn">Generate QR Code</button>
+
+                <div id="qr-result" class="hidden">
+                    <div id="qr-code-container">
+                        <!-- QR code will be inserted here -->
+                    </div>
+                    <div class="qr-actions">
+                        <button id="download-btn" class="btn"><i class="fas fa-download"></i> Download</button>
+                        <button id="share-btn" class="btn"><i class="fas fa-share-alt"></i> Share</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scan QR Code Tab -->
+            <div class="tab-pane" id="scan-pane">
+                <div class="scanner-container">
+                    <div id="scanner-placeholder">
+                        <i class="fas fa-camera"></i>
+                        <p>Click "Start Camera" to scan a QR code</p>
+                    </div>
+                    <video id="scanner-video" autoplay playsinline></video>
+                    <canvas id="scanner-canvas" class="hidden"></canvas>
+                    <div id="scan-region-highlight"></div>
+                </div>
+                <div class="scanner-controls">
+                    <button id="start-camera" class="btn"><i class="fas fa-video"></i> Start Camera</button>
+                    <button id="stop-camera" class="btn hidden"><i class="fas fa-video-slash"></i> Stop Camera</button>
+                </div>
+                <div id="scan-result" class="hidden">
+                    <h3>Scan Result:</h3>
+                    <div id="scanned-result"></div>
+                    <div id="result-actions">
+                        <button id="copy-result" class="btn"><i class="fas fa-copy"></i> Copy</button>
+                        <button id="open-result" class="btn"><i class="fas fa-external-link-alt"></i> Open</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 QR Code Generator & Scanner. All rights reserved.</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
